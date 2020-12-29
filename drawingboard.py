@@ -8,7 +8,7 @@ class DrawingBoard(QMainWindow):
     def __init__(self):
         super().__init__()
         self.canvas = QLabel(self)
-        self.canvas.setGeometry(30, 100, 1220, 600)
+        self.canvas.setGeometry(30, 100, 1220, 590)
         self.penColor = QColor(0, 0, 0)
         self.brushColor = None
         # self.start = QPoint()
@@ -65,12 +65,12 @@ class DrawingBoard(QMainWindow):
         menu_file = menu.addMenu("&파일")
         save_file = QAction('저장', self)
         save_file.setShortcut('Ctrl+S')
-        #save_file.triggered.connect(self.save)
+        save_file.triggered.connect(self.save)
         menu_file.addAction(save_file)
         open_file = QAction('불러오기', self)
         open_file.setShortcut('Ctrl+A')
         menu_file.addAction(open_file)
-        #open_file.triggered.connect(self.open)
+        open_file.triggered.connect(self.open)
         close_file = QAction('&나가기', self)
         close_file.setShortcut('Ctrl+Q')
         menu_file.addAction(close_file)
@@ -175,9 +175,18 @@ class DrawingBoard(QMainWindow):
         self.pasty = None
         self.update()
 
-    # def save(self):
+    def save(self):
+        fpath, _ = QFileDialog.getSaveFileName(self, 'Save Image', '',
+                                               "PNG(*.png);;JPEG(*.jpg *.jpeg);;All Files(*.*) ")
+        pixmap = self.canvas.pixmap()
+        pixmap.save(fpath)
 
-    # def open(self):
+    def open(self):
+        fileopen = QFileDialog.getOpenFileName(self, 'Open file', '',
+                                               "PNG(*.png);;JPEG(*.jpg *.jpeg);;All Files(*.*) ")
+        pixmap = QPixmap(self.canvas.width(), self.canvas.height())
+        pixmap.load(fileopen[0])
+        self.canvas.setPixmap(pixmap)
 
     def close(self):
         sys.exit()
