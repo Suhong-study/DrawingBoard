@@ -14,6 +14,7 @@ class DrawingBoard(QMainWindow):
         self.start = QPoint()
         self.end = QPoint()
         self.erasercolor = QColor(255, 255, 255)
+        self.preeraser = QColor(0,0,0)
         self.pastx = None
         self.pasty = None
         self.shape = 0
@@ -109,6 +110,7 @@ class DrawingBoard(QMainWindow):
         self.canvas.setPixmap(pixmap)
 
     def eraser(self):
+        self.preeraser = self.penColor
         self.penColor = self.erasercolor
         self.shape = 0
 
@@ -125,6 +127,7 @@ class DrawingBoard(QMainWindow):
         elif sender == self.bkk_button and color.isValid():
             pixmap.fill(color)
             self.erasercolor = color
+            self.penColor = self.preeraser
             self.bkk_button.setStyleSheet('background-color: {}'.format(color.name()))
             self.canvas.setPixmap(pixmap)
 
