@@ -184,8 +184,13 @@ class DrawingBoard(QMainWindow):
         painter.setPen(QPen(self.penColor, self.thick_change.currentIndex()))
         if self.shape == 1:
             painter.drawLine(QLine(self.start, e.pos()))
-        # elif self.shape == 2:
-
+        elif self.shape == 2:
+            painter.setBrush(QColor(self.brushColor))
+            points = QPolygon([
+                QPoint(self.pastx, self.pasty),
+                QPoint(e.x(), e.y()),
+                QPoint(self.pastx * 2, self.pasty * 2)])
+            painter.drawPolygon(points)
         elif self.shape == 3:
             painter.setBrush(QColor(self.brushColor))
             painter.drawRect(QRect(self.start, e.pos()))
