@@ -135,13 +135,10 @@ class DrawingBoard(QMainWindow):
             self.shape = 1
         elif shape.text() == '세모':
             self.shape = 2
-            self.brushColor = self.bkk_color
         elif shape.text() == '사각형':
             self.shape = 3
-            self.brushColor = self.bkk_color
         elif shape.text() == '원':
             self.shape = 4
-            self.brushColor = self.bkk_color
 
     def mousePressEvent(self, e):
         self.start = e.pos()
@@ -177,7 +174,6 @@ class DrawingBoard(QMainWindow):
                 painter.drawEllipse(QRect(self.start, e.pos()))
             painter.end()
             self.canvas.repaint()
-
 
     def mouseReleaseEvent(self, e):
         painter = QPainter(self.canvas.pixmap())
