@@ -11,13 +11,11 @@ class DrawingBoard(QMainWindow):
         self.canvas.setGeometry(30, 100, 1220, 590)
         self.penColor = QColor(0, 0, 0)
         self.brushColor = None
-        # self.start = QPoint()
-        # self.end = QPoint()
+        self.start = QPoint()
+        self.end = QPoint()
         self.erasercolor = QColor(255,255,255)
         self.pastx = None
         self.pasty = None
-        self.presentx = None
-        self.presenty = None
         self.shape = 0
         self.initUI()
 
@@ -39,7 +37,7 @@ class DrawingBoard(QMainWindow):
         self.brush_color.setGeometry(170, 45, 100, 40)
         self.brush_button = QPushButton(self)
         self.brush_button.setGeometry(220, 45, 70, 40)
-        self.brush_button.setStyleSheet('background-color: rgb(0,0,0)')
+        self.brush_button.setStyleSheet('background-color: rgb(255,255,255)')
         self.brush_button.clicked.connect(self.changecolor)
         self.pen_thick = QLabel("두께", self)
         self.pen_thick.setGeometry(335, 45, 100, 40)
@@ -102,8 +100,8 @@ class DrawingBoard(QMainWindow):
         pixmap = QPixmap(self.canvas.width(), self.canvas.height())
         self.penColor = QColor(0,0,0)
         self.pen_button.setStyleSheet('background-color: rgb(0,0,0)')
-        self.brushColor = QColor(0,0,0)
-        self.brush_button.setStyleSheet('background-color: rgb(0,0,0)')
+        self.brushColor = QColor(255,255,255)
+        self.brush_button.setStyleSheet('background-color: rgb(255,255,255)')
         pixmap.fill(Qt.white)
         self.erasercolor = QColor(255,255,255)
         self.bkk_button.setStyleSheet('background-color: rgb(255,255,255)')
@@ -112,6 +110,7 @@ class DrawingBoard(QMainWindow):
 
     def eraser(self):
         self.penColor = self.erasercolor
+        self.shape = 0
 
     def changecolor(self):
         pixmap = QPixmap(self.canvas.width(), self.canvas.height())
@@ -136,16 +135,18 @@ class DrawingBoard(QMainWindow):
             self.shape = 1
         elif shape.text() == '세모':
             self.shape = 2
+            self.brushColor = self.bkk_color
         elif shape.text() == "사각형":
             self.shape = 3
+            self.brushColor = self.bkk_color
         elif shape.text() == '원':
             self.shape = 4
+            self.brushColor = self.bkk_color
 
     def mousePressEvent(self, e):
-        if e.button() == Qt.LeftButton:
-            self.start = e.pos()
-            self.end = e.pos()
-            self.update()
+        self.start = e.pos()
+        self.end = e.pos()
+        self.update()
 
     def mouseMoveEvent(self, e):
         if self.pastx is None:
@@ -154,23 +155,36 @@ class DrawingBoard(QMainWindow):
         else:
             painter = QPainter(self.canvas.pixmap())
             painter.setPen(QPen(self.penColor,self.thick_change.currentIndex()))
-            # painter.setBrush(self.brushColor)
             if self.shape == 0:
                 painter.drawLine(self.pastx, self.pasty, e.x(), e.y())
             elif self.shape == 1:
-                painter.drawLine(QLine(self.start, self.end))
+                painter.drawLine(QLine(self.start, e.pos()))
             # elif self.shape == 2:
 
             elif self.shape == 3:
-                painter.drawRect(QRect(self.start,self.end))
+                painter.setBrush(QColor(self.brushColor))
+                painter.drawRect(QRect(self.start, e.pos()))
             elif self.shape == 4:
-                painter.drawEllipse(self.pastx, self.pasty,self.start, self.end)
+                painter.setBrush(QColor(self.brushColor))
+                painter.drawEllipse(QRect(self.start, e.pos()))
             painter.end()
-            self.canvas.update()
+            self.canvas.repaint()
             self.pastx = e.x()
             self.pasty = e.y()
 
     def mouseReleaseEvent(self, e):
+        painter = QPainter(self.canvas.pixmap())
+        painter.setPen(QPen(self.penColor,self.thick_change.currentIndex()))
+        if self.shape == 1:
+            painter.drawLine(QLine(self.start, e.pos()))
+        # elif self.shape == 2:
+
+        elif self.shape == 3:
+            painter.drawRect(QRect(self.start, e.pos()))
+        elif self.shape == 4:
+            painter.drawEllipse(QRect(self.start,e.pos()))
+        painter.end()
+        self.canvas.repaint()
         self.pastx = None
         self.pasty = None
         self.update()
@@ -190,6 +204,7 @@ class DrawingBoard(QMainWindow):
 
     def close(self):
         sys.exit()
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
