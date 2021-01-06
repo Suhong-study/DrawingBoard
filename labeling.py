@@ -9,15 +9,16 @@ class Labeling(QMainWindow):
     def __init__(self):
         super().__init__()
         self.image_list = []
+        self.info_list = []
+        self.total_list = []
         self.num = 0
         self.start = QPoint()
-        self.end = QPoint()
         self.pencolor = QColor(0, 0, 0)
         self.initUI()
 
     def initUI(self):
         self.setFixedSize(1000, 600)
-        self.setWindowTitle('레이블링프로그램-1')
+        self.setWindowTitle('레이블링프로그램')
         self.setStyleSheet('background-color: white;')
         self.directory_button = QPushButton("디렉터리 선택", self)
         self.directory_button.setFont(QFont("굴림", 15))
@@ -34,7 +35,7 @@ class Labeling(QMainWindow):
         self.pathsetting.setFont(QFont("굴림", 11))
         self.pathsetting.setStyleSheet('background-color: white; border-style: outset; '
                                        'border-width: 5px; border-color: black;')
-        self.left_button = QPushButton("<",self)
+        self.left_button = QPushButton("<", self)
         self.left_button.setFont(QFont("굴림", 20))
         self.left_button.setGeometry(770, 500, 90, 70)
         self.left_button.setStyleSheet('background-color: white; border-style: outset; '
@@ -49,17 +50,21 @@ class Labeling(QMainWindow):
         self.dog_radio = QRadioButton("Dog", self)
         self.dog_radio.setGeometry(850, 20, 70, 50)
         self.dog_radio.setFont(QFont("굴림", 15))
-        self.dog_radio.clicked.connect(self.boundingbox)
+        self.dog_radio.clicked.connect(self.boundingboxcolor)
         self.cat_radio = QRadioButton("Cat", self)
         self.cat_radio.setGeometry(850, 60, 70, 50)
         self.cat_radio.setFont(QFont("굴림", 15))
-        self.cat_radio.clicked.connect(self.boundingbox)
+        self.cat_radio.clicked.connect(self.boundingboxcolor)
         self.dog_color = QLabel(self)
         self.dog_color.setGeometry(936, 32, 25, 25)
         self.dog_color.setStyleSheet('background-color: red;')
         self.cat_color = QLabel(self)
         self.cat_color.setGeometry(936, 72, 25, 25)
         self.cat_color.setStyleSheet('background-color: blue;')
+
+        self.label_info = QLabel(self)
+        self.label_info.setFont(QFont("굴림", 15))
+
         self.imagesetting.mousePressEvent = self.mousePressEvent
         self.imagesetting.mouseMoveEvent = self.mouseMoveEvent
         self.imagesetting.mouseReleaseEvent = self.mouseReleaseEvent
@@ -78,7 +83,7 @@ class Labeling(QMainWindow):
         self.imagesetting.setPixmap(self.pixmap)
 
     def preimage(self):
-        self.num = self.num-1
+        self.num = self.num - 1
         if self.num < 0:
             QMessageBox.about(self, "알림", "첫번째 이미지입니다.")
         else:
@@ -93,7 +98,7 @@ class Labeling(QMainWindow):
             self.pixmap.load("{0}\{1}".format(self.folder_open, self.image_list[self.num]))
             self.imagesetting.setPixmap(self.pixmap)
 
-    def boundingbox(self):
+    def boundingboxcolor(self):
         sender = self.sender()
         if sender == self.cat_radio:
             self.pencolor = QColor(0, 0, 255)
@@ -102,20 +107,35 @@ class Labeling(QMainWindow):
 
     def mousePressEvent(self, e):
         self.start = e.pos()
-        self.end = e.pos()
         self.imagesetting.update()
 
     def mouseMoveEvent(self, e):
+        newpixmap = self.imagesetting.pixmap()
+        newpixmap = newpixmap.copy(0, 0, self.imagesetting.width(), self.imagesetting.height())
         painter = QPainter(self.imagesetting.pixmap())
-        painter.setPen(QPen(self.penColor, 5))
+        painter.setPen(QPen(self.pencolor, 5))
         painter.drawRect(QRect(self.start, e.pos()))
         painter.end()
         self.imagesetting.repaint()
+        self.imagesetting.setPixmap(newpixmap)
 
     def mouseReleaseEvent(self, e):
         painter = QPainter(self.imagesetting.pixmap())
-        painter.setPen(QPen(self.penColor, 5))
+        painter.setFont(QFont("굴림", 15))
+        painter.setPen(QPen(self.pencolor, 5))
         painter.drawRect(QRect(self.start, e.pos()))
+        a, b, c, d = self.start.x(), self.start.y(), e.x(), e.y()
+        self.info_list = [a, b, c, d]
+        print(self.info_list)
+        if self.pencolor == QColor(255, 0, 0):
+            painter.drawText(a, b - 10, "Dog")
+            self.info_list.append("Dog")
+            self.total_list.append(self.info_list)
+        else:
+            painter.drawText(a, b - 10, "Cat")
+            self.info_list.append("Cat")
+            self.total_list.append(self.info_list)
+        print(self.total_list)
         self.imagesetting.repaint()
 
 
