@@ -11,9 +11,11 @@ class Labeling(QMainWindow):
         self.image_list = []
         self.info_list = []
         self.total_list = []
+        self.imagelist2 = []
         self.num = 0
         self.start = QPoint()
-        self.pencolor = QColor(0, 0, 0)
+        self.pencolor = QColor(255, 0, 0)
+        self.setMouseTracking(True)
         self.drawing = False
         self.initUI()
 
@@ -52,6 +54,7 @@ class Labeling(QMainWindow):
         self.dog_radio = QRadioButton("Dog", self)
         self.dog_radio.setGeometry(850, 20, 70, 50)
         self.dog_radio.setFont(QFont("굴림", 15))
+        self.dog_radio.setChecked(True)
         self.dog_radio.clicked.connect(self.boundingboxcolor)
         self.cat_radio = QRadioButton("Cat", self)
         self.cat_radio.setGeometry(850, 60, 70, 50)
@@ -76,17 +79,15 @@ class Labeling(QMainWindow):
         self.folder_open = QFileDialog.getExistingDirectory()
         self.folder_open = os.path.realpath(self.folder_open)
         self.image_list = os.listdir(self.folder_open)
-        print(self.image_list)
         self.pathsetting.setText(self.folder_open)
-        self.pixmap = QPixmap(self.imagesetting.width(), self.imagesetting.height())
+        self.pixmap = QPixmap()
         self.pixmap.load("{0}\{1}".format(self.folder_open, self.image_list[0]))
         self.num = 0
         self.imagesetting.setPixmap(self.pixmap)
-        self.boundingboxload()
-
-    # def boundingboxload(self):
-    #     for i in self.image_list:
-    #         print(i)
+        for i in self.image_list:
+            if "txt" in i:
+                self.image_list.remove(i)
+        self.loadbounding(self.image_list[self.num].split(".")[0])
 
     def preimage(self):
         self.store()
@@ -95,8 +96,33 @@ class Labeling(QMainWindow):
             QMessageBox.about(self, "알림", "첫번째 이미지입니다.")
             self.num = 0
         else:
+            self.imagelist2 =os.listdir(self.folder_open)
             self.pixmap.load("{0}\{1}".format(self.folder_open, self.image_list[self.num]))
             self.imagesetting.setPixmap(self.pixmap)
+            if self.image_list[self.num].split(".")[0]+".txt" in self.imagelist2:
+                self.loadbounding(self.image_list[self.num].split(".")[0])
+
+    def loadbounding(self,txtname):
+        list2=[]
+        fr = open(f"{self.folder_open}/{txtname}.txt", 'r')
+        text = fr.read().split("\n")
+        text.pop()  # 마지막 공백 삭제
+        for i in range(len(text)):
+            list1 = str(text[i]).split(", ")
+            list2.append(list1)
+        painter = QPainter(self.imagesetting.pixmap())
+        painter.setFont(QFont("굴림", 15))
+        for i in range(len(list2)):
+            if list2[i][4] == "Dog":
+                painter.setPen(QPen(QColor(255, 0, 0), 5))
+                painter.drawText(int(list2[i][0]), int(list2[i][1]) - 10, "Dog")
+            else:
+                painter.setPen(QPen(QColor(0, 0, 255), 5))
+                painter.drawText(int(list2[i][0]), int(list2[i][1]) - 10, "Cat")
+            painter.drawRect(QRectF(int(list2[i][0]), int(list2[i][1]), int(list2[i][2]) - int(list2[i][0]),
+                                    int(list2[i][3]) - int(list2[i][1])))
+            self.imagesetting.repaint()
+        fr.close()
 
     def nextimage(self):
         self.store()
@@ -105,15 +131,21 @@ class Labeling(QMainWindow):
             QMessageBox.about(self, "알림", "마지막 이미지입니다.")
             self.num = self.num -1
         else:
+            self.imagelist2 = os.listdir(self.folder_open)
             self.pixmap.load("{0}\{1}".format(self.folder_open, self.image_list[self.num]))
             self.imagesetting.setPixmap(self.pixmap)
+            if self.image_list[self.num].split(".")[0]+".txt" in self.imagelist2:
+                self.loadbounding(self.image_list[self.num].split(".")[0])
 
     def store(self):
         if len(self.total_list) > 0:
             self.prestore = self.image_list[self.num].split(".")[0]
-            fw = open(f"{self.folder_open}/{self.prestore}.txt", 'w')
+            fw = open(f"{self.folder_open}/{self.prestore}.txt", 'a')
             for i in range(len(self.total_list)):
                 self.writestore = self.total_list[i]
+                self.writestore = str(self.writestore).replace("[", "")
+                self.writestore = str(self.writestore).replace("]", "")
+                self.writestore = str(self.writestore).replace("\'", "")
                 fw.write(str(self.writestore)+"\n")
             for i in range(len(self.total_list)):
                 self.total_list.pop()
@@ -133,6 +165,8 @@ class Labeling(QMainWindow):
             self.imagesetting.update()
 
     def mouseMoveEvent(self, e):
+        # if 30 <= e.x() <= 830 and 30 <= e.y() <= 480:
+        #     self.setCursor(QCursor(Qt.CrossCursor))  # 마우스 커서 모양 변경
         if self.drawing:
             newpixmap = self.imagesetting.pixmap()
             newpixmap = newpixmap.copy(0, 0, self.imagesetting.width(), self.imagesetting.height())
@@ -156,11 +190,10 @@ class Labeling(QMainWindow):
                 painter.drawText(a, b - 10, "Dog")
                 self.info_list.append("Dog")
                 self.total_list.append(self.info_list)
-            else:
+            elif self.pencolor == QColor(0, 0, 255):
                 painter.drawText(a, b - 10, "Cat")
                 self.info_list.append("Cat")
                 self.total_list.append(self.info_list)
-            print(self.total_list)
             self.imagesetting.repaint()
 
 
