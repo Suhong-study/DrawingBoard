@@ -14,11 +14,13 @@ class Labeling(QMainWindow):
         self.num = 0
         self.start = QPoint()
         self.pencolor = QColor(0, 0, 0)
+        self.drawing = False
         self.initUI()
 
     def initUI(self):
         self.setFixedSize(1000, 600)
         self.setWindowTitle('레이블링프로그램')
+        # self.setCursor(QCursor(Qt.CrossCursor))  # 마우스 커서 모양 변경
         self.setStyleSheet('background-color: white;')
         self.directory_button = QPushButton("디렉터리 선택", self)
         self.directory_button.setFont(QFont("굴림", 15))
@@ -73,7 +75,6 @@ class Labeling(QMainWindow):
     def open(self):
         self.folder_open = QFileDialog.getExistingDirectory()
         self.folder_open = os.path.realpath(self.folder_open)
-        print(self.folder_open)
         self.image_list = os.listdir(self.folder_open)
         print(self.image_list)
         self.pathsetting.setText(self.folder_open)
@@ -81,22 +82,42 @@ class Labeling(QMainWindow):
         self.pixmap.load("{0}\{1}".format(self.folder_open, self.image_list[0]))
         self.num = 0
         self.imagesetting.setPixmap(self.pixmap)
+        self.boundingboxload()
+
+    # def boundingboxload(self):
+    #     for i in self.image_list:
+    #         print(i)
 
     def preimage(self):
+        self.store()
         self.num = self.num - 1
         if self.num < 0:
             QMessageBox.about(self, "알림", "첫번째 이미지입니다.")
+            self.num = 0
         else:
             self.pixmap.load("{0}\{1}".format(self.folder_open, self.image_list[self.num]))
             self.imagesetting.setPixmap(self.pixmap)
 
     def nextimage(self):
+        self.store()
         self.num = self.num + 1
-        if not self.num <= (len(self.image_list) - 1):
+        if self.num == (len(self.image_list)):
             QMessageBox.about(self, "알림", "마지막 이미지입니다.")
+            self.num = self.num -1
         else:
             self.pixmap.load("{0}\{1}".format(self.folder_open, self.image_list[self.num]))
             self.imagesetting.setPixmap(self.pixmap)
+
+    def store(self):
+        if len(self.total_list) > 0:
+            self.prestore = self.image_list[self.num].split(".")[0]
+            fw = open(f"{self.folder_open}/{self.prestore}.txt", 'w')
+            for i in range(len(self.total_list)):
+                self.writestore = self.total_list[i]
+                fw.write(str(self.writestore)+"\n")
+            for i in range(len(self.total_list)):
+                self.total_list.pop()
+            fw.close()
 
     def boundingboxcolor(self):
         sender = self.sender()
@@ -106,37 +127,41 @@ class Labeling(QMainWindow):
             self.pencolor = QColor(255, 0, 0)
 
     def mousePressEvent(self, e):
-        self.start = e.pos()
-        self.imagesetting.update()
+        if e.buttons() & Qt.LeftButton:
+            self.drawing = True
+            self.start = e.pos()
+            self.imagesetting.update()
 
     def mouseMoveEvent(self, e):
-        newpixmap = self.imagesetting.pixmap()
-        newpixmap = newpixmap.copy(0, 0, self.imagesetting.width(), self.imagesetting.height())
-        painter = QPainter(self.imagesetting.pixmap())
-        painter.setPen(QPen(self.pencolor, 5))
-        painter.drawRect(QRect(self.start, e.pos()))
-        painter.end()
-        self.imagesetting.repaint()
-        self.imagesetting.setPixmap(newpixmap)
+        if self.drawing:
+            newpixmap = self.imagesetting.pixmap()
+            newpixmap = newpixmap.copy(0, 0, self.imagesetting.width(), self.imagesetting.height())
+            painter = QPainter(self.imagesetting.pixmap())
+            painter.setPen(QPen(self.pencolor, 5))
+            painter.drawRect(QRect(self.start, e.pos()))
+            painter.end()
+            self.imagesetting.repaint()
+            self.imagesetting.setPixmap(newpixmap)
 
     def mouseReleaseEvent(self, e):
-        painter = QPainter(self.imagesetting.pixmap())
-        painter.setFont(QFont("굴림", 15))
-        painter.setPen(QPen(self.pencolor, 5))
-        painter.drawRect(QRect(self.start, e.pos()))
-        a, b, c, d = self.start.x(), self.start.y(), e.x(), e.y()
-        self.info_list = [a, b, c, d]
-        print(self.info_list)
-        if self.pencolor == QColor(255, 0, 0):
-            painter.drawText(a, b - 10, "Dog")
-            self.info_list.append("Dog")
-            self.total_list.append(self.info_list)
-        else:
-            painter.drawText(a, b - 10, "Cat")
-            self.info_list.append("Cat")
-            self.total_list.append(self.info_list)
-        print(self.total_list)
-        self.imagesetting.repaint()
+        if self.drawing:
+            self.drawing = False
+            painter = QPainter(self.imagesetting.pixmap())
+            painter.setFont(QFont("굴림", 15))
+            painter.setPen(QPen(self.pencolor, 5))
+            painter.drawRect(QRect(self.start, e.pos()))
+            a, b, c, d = self.start.x(), self.start.y(), e.x(), e.y()
+            self.info_list = [a, b, c, d]
+            if self.pencolor == QColor(255, 0, 0):
+                painter.drawText(a, b - 10, "Dog")
+                self.info_list.append("Dog")
+                self.total_list.append(self.info_list)
+            else:
+                painter.drawText(a, b - 10, "Cat")
+                self.info_list.append("Cat")
+                self.total_list.append(self.info_list)
+            print(self.total_list)
+            self.imagesetting.repaint()
 
 
 if __name__ == '__main__':
