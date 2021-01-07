@@ -97,14 +97,14 @@ class Labeling(QMainWindow):
             QMessageBox.about(self, "알림", "첫번째 이미지입니다.")
             self.num = 0
         else:
-            self.imagelist2 =os.listdir(self.folder_open)
+            self.imagelist2 = os.listdir(self.folder_open)
             self.pixmap.load("{0}\{1}".format(self.folder_open, self.image_list[self.num]))
             self.imagesetting.setPixmap(self.pixmap)
-            if self.image_list[self.num].split(".")[0]+".txt" in self.imagelist2:
+            if self.image_list[self.num].split(".")[0] + ".txt" in self.imagelist2:
                 self.loadbounding(self.image_list[self.num].split(".")[0])
 
-    def loadbounding(self,txtname):
-        list2=[]
+    def loadbounding(self, txtname):
+        list2 = []
         fr = open(f"{self.folder_open}/{txtname}.txt", 'r')
         text = fr.read().split("\n")
         text.pop()  # 마지막 공백 삭제
@@ -130,12 +130,12 @@ class Labeling(QMainWindow):
         self.num = self.num + 1
         if self.num == (len(self.image_list)):
             QMessageBox.about(self, "알림", "마지막 이미지입니다.")
-            self.num = self.num -1
+            self.num = self.num - 1
         else:
             self.imagelist2 = os.listdir(self.folder_open)
             self.pixmap.load("{0}\{1}".format(self.folder_open, self.image_list[self.num]))
             self.imagesetting.setPixmap(self.pixmap)
-            if self.image_list[self.num].split(".")[0]+".txt" in self.imagelist2:
+            if self.image_list[self.num].split(".")[0] + ".txt" in self.imagelist2:
                 self.loadbounding(self.image_list[self.num].split(".")[0])
 
     def store(self):
@@ -147,7 +147,7 @@ class Labeling(QMainWindow):
                 self.writestore = str(self.writestore).replace("[", "")
                 self.writestore = str(self.writestore).replace("]", "")
                 self.writestore = str(self.writestore).replace("\'", "")
-                fw.write(str(self.writestore)+"\n")
+                fw.write(str(self.writestore) + "\n")
             for i in range(len(self.total_list)):
                 self.total_list.pop()
             fw.close()
@@ -199,9 +199,16 @@ class Labeling(QMainWindow):
         elif e.buttons() & Qt.RightButton:
             self.eraser(e.x(), e.y())
 
+    def mousecursorchange(self, x, y):
+        if 30 <= x <= 830 and 30 <= y <= 480:
+            self.setCursor(QCursor(Qt.CrossCursor))
+        elif x < 30 or x > 830:
+            self.setCursor(QCursor(Qt.ArrowCursor))
+        elif y < 30 or y > 480:
+            self.setCursor(QCursor(Qt.ArrowCursor))
+
     def mouseMoveEvent(self, e):
-        # if 30 <= e.x() <= 830 and 30 <= e.y() <= 480:
-        #     self.setCursor(QCursor(Qt.CrossCursor))  # 마우스 커서 모양 변경
+        self.mousecursorchange(e.x(), e.y())
         if self.drawing:
             newpixmap = self.imagesetting.pixmap()
             newpixmap = newpixmap.copy(0, 0, self.imagesetting.width(), self.imagesetting.height())
