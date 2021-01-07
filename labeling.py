@@ -184,12 +184,12 @@ class Labeling(QMainWindow):
             writestore = str(writestore).replace("]", "")
             writestore = str(writestore).replace("\'", "")
             fd.write(str(writestore) + "\n")
+        fd.close()
         self.pixmap.load("{0}\{1}".format(self.folder_open, self.image_list[self.num]))
         self.imagesetting.setPixmap(self.pixmap)
         self.imagelist2 = os.listdir(self.folder_open)
         if txtname + ".txt" in self.imagelist2:
             self.loadbounding(txtname)
-        fd.close()
 
     def mousePressEvent(self, e):
         if e.buttons() & Qt.LeftButton:
