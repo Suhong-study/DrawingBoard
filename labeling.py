@@ -22,7 +22,6 @@ class Labeling(QMainWindow):
     def initUI(self):
         self.setFixedSize(1000, 600)
         self.setWindowTitle('레이블링프로그램')
-        # self.setCursor(QCursor(Qt.CrossCursor))  # 마우스 커서 모양 변경
         self.setStyleSheet('background-color: white;')
         self.directory_button = QPushButton("디렉터리 선택", self)
         self.directory_button.setFont(QFont("굴림", 15))
@@ -80,14 +79,16 @@ class Labeling(QMainWindow):
         self.folder_open = os.path.realpath(self.folder_open)
         self.image_list = os.listdir(self.folder_open)
         self.pathsetting.setText(self.folder_open)
-        self.pixmap = QPixmap()
+        self.pixmap = QPixmap(self.imagesetting.width(), self.imagesetting.height())
         self.pixmap.load("{0}\{1}".format(self.folder_open, self.image_list[0]))
         self.num = 0
         self.imagesetting.setPixmap(self.pixmap)
         for i in self.image_list:
             if "txt" in i:
                 self.image_list.remove(i)
-        self.loadbounding(self.image_list[self.num].split(".")[0])
+        self.imagelist2 = os.listdir(self.folder_open)
+        if self.image_list[self.num].split(".")[0] + ".txt" in self.imagelist2:
+            self.loadbounding(self.image_list[self.num].split(".")[0])
 
     def preimage(self):
         self.store()
@@ -158,11 +159,45 @@ class Labeling(QMainWindow):
         elif sender == self.dog_radio:
             self.pencolor = QColor(255, 0, 0)
 
+    def eraser(self, x, y):
+        list2 = []
+        list3 = []
+        txtname = self.image_list[self.num].split(".")[0]
+        fr = open(f"{self.folder_open}/{txtname}.txt", 'r')
+        text = fr.read().split("\n")
+        text.pop()  # 마지막 공백 삭제
+        for i in range(len(text)):
+            list1 = str(text[i]).split(", ")
+            list2.append(list1)
+        fr.close()
+        fd = open(f"{self.folder_open}/{txtname}.txt", 'w')
+        for i in range(len(list2)):
+            list3.append(list2[i])
+        for i in range(len(list2)):
+            a, b, c, d = int(list2[i][0]), int(list2[i][2]), int(list2[i][1]), int(list2[i][3])
+            if a <= x <= b and c <= y <= d:
+                delinfo = list2[i]
+                list3.remove(delinfo)
+        for i in range(len(list3)):
+            writestore = list3[i]
+            writestore = str(writestore).replace("[", "")
+            writestore = str(writestore).replace("]", "")
+            writestore = str(writestore).replace("\'", "")
+            fd.write(str(writestore) + "\n")
+        self.pixmap.load("{0}\{1}".format(self.folder_open, self.image_list[self.num]))
+        self.imagesetting.setPixmap(self.pixmap)
+        self.imagelist2 = os.listdir(self.folder_open)
+        if txtname + ".txt" in self.imagelist2:
+            self.loadbounding(txtname)
+        fd.close()
+
     def mousePressEvent(self, e):
         if e.buttons() & Qt.LeftButton:
             self.drawing = True
             self.start = e.pos()
             self.imagesetting.update()
+        elif e.buttons() & Qt.RightButton:
+            self.eraser(e.x(), e.y())
 
     def mouseMoveEvent(self, e):
         # if 30 <= e.x() <= 830 and 30 <= e.y() <= 480:
@@ -195,6 +230,7 @@ class Labeling(QMainWindow):
                 self.info_list.append("Cat")
                 self.total_list.append(self.info_list)
             self.imagesetting.repaint()
+            self.store()
 
 
 if __name__ == '__main__':
