@@ -1,5 +1,6 @@
 import os
 import sys
+import natsort
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -77,31 +78,19 @@ class Labeling(QMainWindow):
     def open(self):
         self.folder_open = QFileDialog.getExistingDirectory()
         self.folder_open = os.path.realpath(self.folder_open)
-        self.image_list = os.listdir(self.folder_open)
+        self.image_list = natsort.natsorted(os.listdir(self.folder_open))
         self.pathsetting.setText(self.folder_open)
         self.pixmap = QPixmap(self.imagesetting.width(), self.imagesetting.height())
         self.pixmap.load("{0}\{1}".format(self.folder_open, self.image_list[0]))
         self.num = 0
         self.imagesetting.setPixmap(self.pixmap)
+        self.imagesetting.setCursor(Qt.CrossCursor)
         for i in self.image_list:
             if "txt" in i:
                 self.image_list.remove(i)
         self.imagelist2 = os.listdir(self.folder_open)
         if self.image_list[self.num].split(".")[0] + ".txt" in self.imagelist2:
             self.loadbounding(self.image_list[self.num].split(".")[0])
-
-    def preimage(self):
-        self.store()
-        self.num = self.num - 1
-        if self.num < 0:
-            QMessageBox.about(self, "알림", "첫번째 이미지입니다.")
-            self.num = 0
-        else:
-            self.imagelist2 = os.listdir(self.folder_open)
-            self.pixmap.load("{0}\{1}".format(self.folder_open, self.image_list[self.num]))
-            self.imagesetting.setPixmap(self.pixmap)
-            if self.image_list[self.num].split(".")[0] + ".txt" in self.imagelist2:
-                self.loadbounding(self.image_list[self.num].split(".")[0])
 
     def loadbounding(self, txtname):
         list2 = []
@@ -125,6 +114,20 @@ class Labeling(QMainWindow):
             self.imagesetting.repaint()
         fr.close()
 
+    def preimage(self):
+        self.store()
+        self.num = self.num - 1
+        if self.num < 0:
+            QMessageBox.about(self, "알림", "첫번째 이미지입니다.")
+            self.num = 0
+        else:
+            self.imagelist2 = os.listdir(self.folder_open)
+            self.pixmap.load("{0}\{1}".format(self.folder_open, self.image_list[self.num]))
+            self.imagesetting.setPixmap(self.pixmap)
+            self.imagesetting.setCursor(Qt.CrossCursor)
+            if self.image_list[self.num].split(".")[0] + ".txt" in self.imagelist2:
+                self.loadbounding(self.image_list[self.num].split(".")[0])
+
     def nextimage(self):
         self.store()
         self.num = self.num + 1
@@ -135,6 +138,7 @@ class Labeling(QMainWindow):
             self.imagelist2 = os.listdir(self.folder_open)
             self.pixmap.load("{0}\{1}".format(self.folder_open, self.image_list[self.num]))
             self.imagesetting.setPixmap(self.pixmap)
+            self.imagesetting.setCursor(Qt.CrossCursor)
             if self.image_list[self.num].split(".")[0] + ".txt" in self.imagelist2:
                 self.loadbounding(self.image_list[self.num].split(".")[0])
 
@@ -199,16 +203,7 @@ class Labeling(QMainWindow):
         elif e.buttons() & Qt.RightButton:
             self.eraser(e.x(), e.y())
 
-    def mousecursorchange(self, x, y):
-        if 30 <= x <= 830 and 30 <= y <= 480:
-            self.setCursor(QCursor(Qt.CrossCursor))
-        elif x < 30 or x > 830:
-            self.setCursor(QCursor(Qt.ArrowCursor))
-        elif y < 30 or y > 480:
-            self.setCursor(QCursor(Qt.ArrowCursor))
-
     def mouseMoveEvent(self, e):
-        self.mousecursorchange(e.x(), e.y())
         if self.drawing:
             newpixmap = self.imagesetting.pixmap()
             newpixmap = newpixmap.copy(0, 0, self.imagesetting.width(), self.imagesetting.height())
