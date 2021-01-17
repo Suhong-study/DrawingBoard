@@ -15,7 +15,7 @@ class Labeling(QMainWindow):
         self.imagelist2 = []
         self.num = 0
         self.start = QPoint()
-        self.end = QPoint()
+        #self.end = QPoint()
         self.pencolor = QColor(255, 0, 0)
         self.setMouseTracking(True)
         self.drawing = False
@@ -90,11 +90,12 @@ class Labeling(QMainWindow):
             if "txt" in i:
                 self.image_list.remove(i)
         self.imagelist2 = os.listdir(self.folder_open)
-        print(self.imagelist2)
         if self.image_list[self.num].split(".jpg")[0] + ".txt" in self.imagelist2:
             self.loadbounding(self.image_list[self.num].split(".jpg")[0])
         elif self.image_list[self.num].split(".png")[0] + ".txt" in self.imagelist2:
             self.loadbounding(self.image_list[self.num].split(".png")[0])
+        elif self.image_list[self.num].split(".jpeg")[0] + ".txt" in self.imagelist2:
+            self.loadbounding(self.image_list[self.num].split(".jpeg")[0])
 
     def loadbounding(self, txtname):
         list2 = []
@@ -133,6 +134,8 @@ class Labeling(QMainWindow):
                 self.loadbounding(self.image_list[self.num].split(".jpg")[0])
             elif self.image_list[self.num].split(".png")[0] + ".txt" in self.imagelist2:
                 self.loadbounding(self.image_list[self.num].split(".png")[0])
+            elif self.image_list[self.num].split(".jpeg")[0] + ".txt" in self.imagelist2:
+                self.loadbounding(self.image_list[self.num].split(".jpeg")[0])
 
     def nextimage(self):
         self.store()
@@ -149,6 +152,8 @@ class Labeling(QMainWindow):
                 self.loadbounding(self.image_list[self.num].split(".jpg")[0])
             elif self.image_list[self.num].split(".png")[0] + ".txt" in self.imagelist2:
                 self.loadbounding(self.image_list[self.num].split(".png")[0])
+            elif self.image_list[self.num].split(".jpeg")[0] + ".txt" in self.imagelist2:
+                self.loadbounding(self.image_list[self.num].split(".jpeg")[0])
 
     def store(self):
         if len(self.total_list) > 0:
@@ -156,6 +161,8 @@ class Labeling(QMainWindow):
                 self.prestore = self.image_list[self.num].split(".jpg")[0]
             elif ".png" in self.image_list[self.num]:
                 self.prestore = self.image_list[self.num].split(".png")[0]
+            elif ".jpeg" in self.image_list[self.num]:
+                self.prestore = self.image_list[self.num].split(".jpeg")[0]
             fw = open(f"{self.folder_open}/{self.prestore}.txt", 'a')
             for i in range(len(self.total_list)):
                 self.writestore = self.total_list[i]
@@ -181,6 +188,8 @@ class Labeling(QMainWindow):
             txtname = self.image_list[self.num].split(".jpg")[0]
         elif ".png" in self.image_list[self.num]:
             txtname = self.image_list[self.num].split(".png")[0]
+        elif ".jpeg" in self.image_list[self.num]:
+            txtname = self.image_list[self.num].split(".jpeg")[0]
         fr = open(f"{self.folder_open}/{txtname}.txt", 'r')
         text = fr.read().split("\n")
         text.pop()  # 마지막 공백 삭제
